@@ -13,5 +13,35 @@
 
 
 #define macro MAIN() = takes(0) returns(0) {
+    0x00 calldataload 0xe0 shr
 
+    __FUNC_SIG(multiply) eq multiplyNumbers jumpi
+
+    0x00 0x00 revert
+
+    multiplyNumbers:
+        MULTIPLY_NUMBERS()
+}
+
+#define macro MULTIPLY_NUMBERS() = takes(0) returns(0) {
+    0x04 calldataload           //[a]
+    0x24 calldataload           //[b, a]
+    
+    0x00                        //[0, b, a]
+    dup3                        //[a, 0, b, a]
+    0x00 eq successJump jumpi   //[sucessJump pc, a==0, 0, b, a]
+
+    pop                         //[b, a]
+    dup2 dup2                   //[b, a, b, a]
+                                
+    mul dup1                    //[c, c, b, a]          //note : c = b*a
+    swap3 swap1                 //[c, a, b, c]
+
+    div eq successJump jumpi    //[c/a == b, c]
+
+    0x00 0x00 revert
+
+    successJump:
+        0x00 mstore             
+        0x20 0x00 return
 }
